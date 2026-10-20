@@ -33,6 +33,8 @@ Settings are in `BepInEx\config\dev.davethedivercoop.local.cfg`, which is create
 
 ## Controls (player 2, defaults)
 
+Definitely use 2 xbox controllers. The keyboard/controller combo is not the best way to play this mod.
+
 | Action | Keyboard | Xbox controller |
 |---|---|---|
 | Swim | Arrow keys | Left stick |
