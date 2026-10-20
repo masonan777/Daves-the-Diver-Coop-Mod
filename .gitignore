@@ -1,0 +1,10 @@
+bin/
+obj/
+build-status.txt
+*.user
+.vs/
+# Decompiled game output must never be committed
+decomp/
+cpp2il_out/
+funcs_all.txt
+coop_functions.txt

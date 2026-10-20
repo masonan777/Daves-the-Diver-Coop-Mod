@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>DaveTheDiverLocalCoop</AssemblyName>
+    <Version>0.1.0</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GameInstallPath Condition="'$(GameInstallPath)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Dave the Diver</GameInstallPath>
+    <DeployPlugin Condition="'$(DeployPlugin)' == ''">true</DeployPlugin>
+    <NoWarn>CS8500</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="0Harmony" HintPath="$(GameInstallPath)\BepInEx\core\0Harmony.dll" Private="false" />
+    <Reference Include="BepInEx.Core" HintPath="$(GameInstallPath)\BepInEx\core\BepInEx.Core.dll" Private="false" />
+    <Reference Include="BepInEx.Unity.Common" HintPath="$(GameInstallPath)\BepInEx\core\BepInEx.Unity.Common.dll" Private="false" />
+    <Reference Include="BepInEx.Unity.IL2CPP" HintPath="$(GameInstallPath)\BepInEx\core\BepInEx.Unity.IL2CPP.dll" Private="false" />
+    <Reference Include="Il2CppInterop.Runtime" HintPath="$(GameInstallPath)\BepInEx\core\Il2CppInterop.Runtime.dll" Private="false" />
+    <Reference Include="Assembly-CSharp" HintPath="$(GameInstallPath)\BepInEx\interop\Assembly-CSharp.dll" Private="false" />
+    <Reference Include="Assembly-CSharp-firstpass" HintPath="$(GameInstallPath)\BepInEx\interop\Assembly-CSharp-firstpass.dll" Private="false" />
+    <Reference Include="Il2Cppmscorlib" HintPath="$(GameInstallPath)\BepInEx\interop\Il2Cppmscorlib.dll" Private="false" />
+    <Reference Include="Il2CppSystem" HintPath="$(GameInstallPath)\BepInEx\interop\Il2CppSystem.dll" Private="false" />
+    <Reference Include="Il2CppSystem.Core" HintPath="$(GameInstallPath)\BepInEx\interop\Il2CppSystem.Core.dll" Private="false" />
+    <Reference Include="InputSystemWrapper" HintPath="$(GameInstallPath)\BepInEx\interop\InputSystemWrapper.dll" Private="false" />
+    <Reference Include="Unity.InputSystem" HintPath="$(GameInstallPath)\BepInEx\interop\Unity.InputSystem.dll" Private="false" />
+    <Reference Include="UnityEngine.InputModule" HintPath="$(GameInstallPath)\BepInEx\interop\UnityEngine.InputModule.dll" Private="false" />
+    <Reference Include="UnityEngine.CoreModule" HintPath="$(GameInstallPath)\BepInEx\interop\UnityEngine.CoreModule.dll" Private="false" />
+    <Reference Include="UnityEngine.AnimationModule" HintPath="$(GameInstallPath)\BepInEx\interop\UnityEngine.AnimationModule.dll" Private="false" />
+    <Reference Include="UnityEngine.Physics2DModule" HintPath="$(GameInstallPath)\BepInEx\interop\UnityEngine.Physics2DModule.dll" Private="false" />
+    <Reference Include="UnityEngine.IMGUIModule" HintPath="$(GameInstallPath)\BepInEx\interop\UnityEngine.IMGUIModule.dll" Private="false" />
+    <Reference Include="UnityEngine.TextRenderingModule" HintPath="$(GameInstallPath)\BepInEx\interop\UnityEngine.TextRenderingModule.dll" Private="false" />
+    <Reference Include="UnityEngine.UIModule" HintPath="$(GameInstallPath)\BepInEx\interop\UnityEngine.UIModule.dll" Private="false" />
+    <Reference Include="UnityEngine.ImageConversionModule" HintPath="$(GameInstallPath)\BepInEx\interop\UnityEngine.ImageConversionModule.dll" Private="false" />
+    <Reference Include="UnityEngine.UI" HintPath="$(GameInstallPath)\BepInEx\interop\UnityEngine.UI.dll" Private="false" />
+    <Reference Include="Unity.TextMeshPro" HintPath="$(GameInstallPath)\BepInEx\interop\Unity.TextMeshPro.dll" Private="false" />
+    <Reference Include="WeaponSystem" HintPath="$(GameInstallPath)\BepInEx\interop\WeaponSystem.dll" Private="false" />
+    <Reference Include="EzCoding" HintPath="$(GameInstallPath)\BepInEx\interop\EzCoding.dll" Private="false" />
+    <Reference Include="Sirenix.Serialization" HintPath="$(GameInstallPath)\BepInEx\interop\Sirenix.Serialization.dll" Private="false" />
+    <Reference Include="UniRx" HintPath="$(GameInstallPath)\BepInEx\interop\UniRx.dll" Private="false" />
+    <Reference Include="Unity.Addressables" HintPath="$(GameInstallPath)\BepInEx\interop\Unity.Addressables.dll" Private="false" />
+    <Reference Include="Unity.ResourceManager" HintPath="$(GameInstallPath)\BepInEx\interop\Unity.ResourceManager.dll" Private="false" />
+  </ItemGroup>
+
+  <Target Name="Deploy" AfterTargets="Build" Condition="'$(DeployPlugin)' == 'true'">
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(GameInstallPath)\BepInEx\plugins\DaveTheDiverLocalCoop" />
+  </Target>
+</Project>
