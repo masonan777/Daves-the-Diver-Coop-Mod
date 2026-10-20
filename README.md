@@ -1,6 +1,6 @@
 # Daves the Divers: local co-op for Dave the Diver
 
-A BepInEx mod that adds a **second, purple Dave** to *Dave the Diver* for same-screen co-op on one PC. Player 1 plays as usual. Player 2 plays on the right side of the same keyboard or on an Xbox controller.
+A BepInEx mod that adds a **second, purple Dave** to *Dave the Diver* for same-screen co-op on one PC. Player 1 plays as usual. Player 2 plays on an Xbox controller.
 
 > **Status: work in progress, pre-release.** Diving together works and the sushi bar is partly co-op. Expect rough edges: see [What works](#what-works) and [docs/DEV_NOTES.md](docs/DEV_NOTES.md). Back up your save before trying it.
 
@@ -12,14 +12,14 @@ This is a separate, new mod. It is not part of the networked [Coop-Divers](https
 - Player 2 dives in with player 1 and swims, dashes, harpoons, uses the knife, guns and helper items.
 - Player 2 has their own oxygen tank and HUD (purple), weapon/item panel (bottom-left) and starting loadout. The cargo weight is shared. If either diver runs out of oxygen, the dive ends.
 - The camera follows the midpoint between the two divers and keeps player 2 in view.
-- Sharks can grab player 2. Player 2 mashes A / B (Enter / Backspace) to break free, and player 1 can harpoon the shark to help. The sawtooth shark's grab is turned off in co-op because it broke the game even for player 1.
+- Shark grabs are buggy
 - On the boat, player 2 is shown standing next to Dave.
 
 **Sushi bar (night)**
 - Player 2 walks the restaurant as a second Dave: serve, clean (alternate LT / RT), throw away, talk, and play the drink/wasabi mini-games.
 - While one player is in a mini-game, the other keeps working. *(Player 1's side of this is new and still being tested.)*
 
-**Not yet**
+**Not yet tested**
 - Anything outside dives and the sushi bar (farm, other side activities, boss fights) is untested.
 - Only one mini-game / conversation screen can be open at a time.
 
