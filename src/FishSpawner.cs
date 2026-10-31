@@ -161,7 +161,10 @@ internal static class FishSpawner
         GameObject instance = null;
         try
         {
-            if (pickAllocator != null)
+            // The spawner always makes its whole group; a single fish picked out
+            // of a group (e.g. the humphead parrotfish in its school) is copied directly.
+            var groupPrefab = pickAllocator != null ? pickAllocator.FishPrefabOrGroup : null;
+            if (pickAllocator != null && (groupPrefab == null || groupPrefab.Pointer == pickPrefab.Pointer))
                 instance = pickAllocator.DoInstanceFishOrGroup(pickPrefab, null, false);
         }
         catch (Exception exception)

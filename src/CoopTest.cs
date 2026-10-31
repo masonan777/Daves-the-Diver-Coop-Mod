@@ -78,7 +78,7 @@ internal static class CoopTest
 
     internal static void Bind(ConfigFile config)
     {
-        _suite = config.Bind("Test", "GrabSuite", "Saw,Whitetip,Tiger_Shark",
+        _suite = config.Bind("Test", "GrabSuite", "Harpoon,Saw,Whitetip,Tiger_Shark",
             "Creatures (parts of names) the grab test bot tries (Shift + F3 in a dive with player 2).");
         _autoRun = config.Bind("Test", "AutoRun", false,
             "Test mode: as soon as a dive loads, join player 2, run the grab suite and write BepInEx/coop_tests.log.");
@@ -501,6 +501,17 @@ internal static class CoopTest
             _hasLastFishPos = false;
             P2Grab.Clear();
             _caseBase = _base;
+            if (_case.Fish == "Harpoon")
+            {
+                // Both divers aim at once (TargetP2 = player 2 aims first).
+                Reset(p1);
+                Reset(p2);
+                Place(p1, _base);
+                Place(p2, _base + new Vector3(-4f, 0f, 0f));
+                _step = 10;
+                Write($"  .. Harpoon: {(_case.TargetP2 ? "P2" : "P1")} aims first, then the other");
+                return;
+            }
             if (UseHabitats && _habitat.TryGetValue(_case.Fish, out var home) && Vector2.Distance(home, _base) > 30f)
             {
                 // Go where it lives first, and let that part of the level load.
@@ -518,6 +529,11 @@ internal static class CoopTest
         Track(p1, p2);
         WhileP2Held(p1);
         RetryGrab(p1, p2);
+        if (_step >= 10)
+        {
+            HarpoonStep(p1, p2, age);
+            return;
+        }
         switch (_step)
         {
             case -1 when age > 3f:
@@ -634,6 +650,83 @@ internal static class CoopTest
         catch (Exception exception)
         {
             Write($"  .. retry failed: {exception.Message}");
+        }
+    }
+
+    private static string AimState(PlayerCharacter p)
+    {
+        try
+        {
+            var guide = p.RangeAttackArm?.attackRangeObject;
+            return $"{p.GetRangeActionState}/{p.PlayerActionState} guide={(guide != null && guide.activeInHierarchy ? "shown" : "hidden")} locked={p.IsActionLock}";
+        }
+        catch (Exception e) { return "? " + e.Message; }
+    }
+
+    private static bool Aiming(PlayerCharacter p)
+    {
+        try { return p.GetRangeActionState.ToString() == "Aim"; }
+        catch { return false; }
+    }
+
+    private static string _aimFirst, _aimBoth;
+    private static bool _p1Aiming;
+
+    private static void HarpoonStep(PlayerCharacter p1, PlayerCharacter p2, float age)
+    {
+        var p2First = _case.TargetP2;
+        // Player 1's aim button is read through the input system's callbacks,
+        // so the bot starts player 1's aim the way those callbacks do.
+        void Hold(bool player2)
+        {
+            if (player2)
+            {
+                P2Keys.Fake.Add(P2Keys.Action.Ok);
+                return;
+            }
+            _p1Aiming = true;
+            try { p1.OnAim_Performed(); } catch (Exception e) { Write($"  .. P1 aim start failed: {e.Message}"); }
+            try { if (!Aiming(p1)) p1.OnStartRangeAttack(); } catch (Exception e) { Write($"  .. P1 range start failed: {e.Message}"); }
+        }
+        if (_p1Aiming)
+            try { p1.OnAim_Holding(); } catch { }
+        switch (_step)
+        {
+            case 10 when age > 0.5f:
+                Hold(p2First);
+                _step = 11;
+                break;
+            case 11 when age > 2.0f:
+                _aimFirst = $"after the first aim: P1 {AimState(p1)}, P2 {AimState(p2)}";
+                Hold(!p2First);
+                _step = 12;
+                break;
+            case 12 when age > 3.5f:
+                _aimBoth = $"both aiming: P1 {AimState(p1)}, P2 {AimState(p2)}";
+                var ok1 = Aiming(p1);
+                var ok2 = Aiming(p2);
+                _p1Aiming = false;
+                try { p1.OnAim_Canceled(); } catch { }
+                try { p1.OnCancelRangeAttack(); } catch { }
+                P2Keys.Fake.Remove(P2Keys.Action.Ok);
+                var label = $"Harpoon ({(p2First ? "P2" : "P1")} first)";
+                var detail = $"{_aimFirst}; {_aimBoth}";
+                if (ok1 && ok2)
+                {
+                    _pass++;
+                    Result("PASS", label, detail);
+                }
+                else
+                {
+                    _fail++;
+                    Result("FAIL", label, $"{(ok1 ? "" : "P1 could not aim; ")}{(ok2 ? "" : "P2 could not aim; ")}|| {detail}");
+                }
+                _step = 13;
+                break;
+            case 13 when age > 5f:
+                Cleanup(p1, p2);
+                _case = null;
+                break;
         }
     }
 

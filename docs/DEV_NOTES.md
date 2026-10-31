@@ -9,7 +9,7 @@ Working notes: what has been found, what is fixed and what still needs testing. 
 ## Test bot (CoopTest.cs)
 - `[Test] AutoRun = true` runs this sequence: title → Continue → holds the boat's dive button → joins P2 → grab suite → a second pass with the mod's grab rules off (it must FAIL) → quits.
   - It uses the normal dive setup rather than jumping straight to a scene with `GoToInGameEntry`, because that leaves most sharks out.
-- **Suite:** `Saw,Whitetip,Tiger_Shark`, set by `[Test] GrabSuite`. The on-screen banner says which pass is running.
+- **Suite:** `Harpoon,Saw,Whitetip,Tiger_Shark`, set by `[Test] GrabSuite`. The on-screen banner says which pass is running.
 - **Manual test keys:**
   - Left Shift + F3 runs the suite; Left Shift + F4 runs it with the rules off.
   - F3 / F4 / F5 spawn a test fish next to player 1.
@@ -45,10 +45,11 @@ Keep decompiled output out of the repo. It is the game's code.
   - Block-list creatures' grab animation is skipped for both divers.
   - The whitetip fires this event again right after P2 breaks free, as part of its success animation.
 - **A shark holding P2 also grabbed P1,** leaving both divers in its mouth. `NoSharkGrab.Skip` now skips grabs on P1 by the creature that holds P2.
-- **P2 flashing / bleeding when P1 is attacked:** still open.
+- **P2 flashing / bleeding when P1 is attacked:** still open, maybe not a bug.
   - The bite path (`PlayerCharacter.OnBiteHit`) never fired in a test run.
   - P2 has its own `CharacterEffectHandler`.
   - The flash is `PlayerCharacter.BlinkPlayer`. `BleedWatch` (in `BleedTrace.cs`) logs every flash with its source and the creatures near each diver.
+  - Latest log: every P2 flash came from a plain hit (not a bite or `DoDamageEvent`), with no big creature near either diver. One lined up exactly with a parrotfish ram (camera locked onto it and shook), so at least some are real hits. `Nearby()` only lists sharks, eels and similar, not parrotfish or small fish.
 - **Mako:** it doesn't grab, so it's not part of the suite.
 
 ## Sushi bar
@@ -73,3 +74,19 @@ Keep decompiled output out of the repo. It is the game's code.
   | `Sushi_CleanLeft` / `Sushi_CleanRight` | CleanLeft / CleanRight |
 
   `Sushi_Dash` sets dash.
+
+## Harpoon
+- **Aim:** the game allows one aim at a time. If P2 holds aim and isn't aiming 3 frames later, the mod calls P2's `OnStartRangeAttack` (`SecondDiver.cs`). `P1AimFix` (`P2Interact.cs`) does the same for P1 while P2 aims. Bot test `Harpoon` passes in both orders.
+- **Reel-in gauge:** the mash / stick-shake gauge (`StickShakeFightUI.LateUpdate`) is drawn over P2 when P2 is the one fighting (`HarpoonFightUI.cs`). Not yet confirmed in play. The direction-sequence gauge (`CommandFightUI`) isn't handled.
+
+## Camera spots / photo zones (P2Interact.cs; untested)
+- A camera spot is an `InteractionGimmick_PhotoZone` (an `IInteractionObject`). A trigger's UnityEvent calls `InteractionGimmick.OnPlayerEnter(true)`, which always calls `EnqueueInteractObject` on "the player", so only P1 ever got it. Pressing interact runs `SuccessInteract` -> `OnSuccess` -> `PhotoZone.StartPhotoZoneMiniGame`.
+- An earlier reach scan around P2 only found fish bodies: the gimmick component isn't on its collider's own object.
+- Now: every 0.25 s the mod checks each `InteractionGimmick`'s trigger colliders against P2 and adds it to / removes it from P2's interaction queue (no turn swap). P2's interact press already runs as P2's turn, so the photo zone starts from P2.
+- `PhotoZoneStartPatch`: when a photo zone starts during P2's turn, `PhotoP2` lends P2's controller (or the keyboard pad) to the game, and keeps P1's keys out, until `PhotoZone.Current` closes.
+- Logs: `P2 interact: <name> added for player 2`, `Photo zone <name> starting (player 2's turn=...)`, `Player 2's photo zone over`.
+
+## Other open issues
+- **P2's keys briefly controlled both divers** once at dive start, then it went back to normal. Cause unknown; the old `P2Interact`, which swapped turns 4x a second, was the main suspect and no longer does.
+- **Green Humphead Parrotfish "QTE":** never appeared for either diver. Fish databases list it as defensive with no QTE, and it seems to just ram, so this is probably not a bug.
+- **Farm:** needs co-op work like the sushi bar. Untested.

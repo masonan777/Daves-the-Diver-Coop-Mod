@@ -126,6 +126,9 @@ internal static class P2Keys
         }
     }
 
+    // Test bot: keys it holds down for player 2.
+    internal static readonly HashSet<Action> Fake = new();
+
     internal static void Tick()
     {
         if (Enum.TryParse(_joinKey.Value, true, out Key joinKey) && TryVirtualKey(joinKey, out var joinVk))
@@ -149,6 +152,7 @@ internal static class P2Keys
             foreach (var vk in pair.Value)
                 isDown |= IsDown(vk);
             isDown |= P2Pad.Down(pair.Key);
+            isDown |= Fake.Contains(pair.Key);
             var wasDown = _down.Contains(pair.Key);
             if (isDown && !wasDown)
             {

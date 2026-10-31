@@ -28,6 +28,22 @@ internal static class P2Dispatch
 
     internal static void Clear() => _input = null;
 
+    // Player 1's real aim button (outside player 2's turn).
+    internal static bool P1AimHeld()
+    {
+        if (_input == null || Active)
+            return false;
+        try
+        {
+            var phase = _input.GetPhase(ActionName.Aim);
+            return phase == Phase.Started || phase == Phase.Performed || phase == Phase.Holding;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     internal static void Dispatch(PlayerCharacter p2)
     {
         if (p2 == null || _input == null || _dispatchFrame == Time.frameCount)
@@ -148,7 +164,7 @@ internal static class InputActionImplPatch
     private static bool Prefix(ref bool __result, Phase __0, ActionName __1)
     {
         if (!P2Dispatch.Active)
-            return true;
+            return !FakeP1.Answer(__0, __1, ref __result);
         __result = P2Dispatch.Answer(__0, __1);
         return false;
     }
@@ -160,7 +176,7 @@ internal static class InputHoldImplPatch
     private static bool Prefix(ref bool __result, float __0, ActionName __1)
     {
         if (!P2Dispatch.Active)
-            return true;
+            return !FakeP1.Hold(__1, __0, ref __result);
         __result = P2Dispatch.Held(__1, __0);
         return false;
     }
@@ -172,7 +188,7 @@ internal static class InputActionPatch
     private static bool Prefix(ref bool __result, ActionName __0)
     {
         if (!P2Dispatch.Active)
-            return true;
+            return !FakeP1.Answer(Phase.Started, __0, ref __result);
         __result = P2Dispatch.Answer(Phase.Started, __0);
         return false;
     }
@@ -184,7 +200,7 @@ internal static class InputCancelPatch
     private static bool Prefix(ref bool __result, ActionName __0)
     {
         if (!P2Dispatch.Active)
-            return true;
+            return !FakeP1.Answer(Phase.Canceled, __0, ref __result);
         __result = P2Dispatch.Answer(Phase.Canceled, __0);
         return false;
     }
@@ -196,7 +212,7 @@ internal static class InputHoldPatch
     private static bool Prefix(ref bool __result, ActionName __0)
     {
         if (!P2Dispatch.Active)
-            return true;
+            return !FakeP1.Answer(Phase.Holding, __0, ref __result);
         __result = P2Dispatch.Answer(Phase.Holding, __0);
         return false;
     }
@@ -208,8 +224,66 @@ internal static class InputPhasePatch
     private static bool Prefix(ref Phase __result, ActionName __0)
     {
         if (!P2Dispatch.Active)
-            return true;
+            return !FakeP1.PhaseOf(__0, ref __result);
         __result = P2Dispatch.PhaseOf(__0);
         return false;
+    }
+}
+
+// Test bot: holds player 1's aim button by answering player 1's own input
+// questions (only while the bot asks for it).
+internal static class FakeP1
+{
+    private static bool _held;
+    private static int _pressFrame = -1, _releaseFrame = -1;
+    private static float _since;
+
+    internal static void Press()
+    {
+        _held = true;
+        _pressFrame = Time.frameCount;
+        _since = Time.realtimeSinceStartup;
+    }
+
+    internal static void Release()
+    {
+        if (!_held)
+            return;
+        _held = false;
+        _releaseFrame = Time.frameCount;
+    }
+
+    private static bool Mine(ActionName action) => action == ActionName.Aim && (_held || _releaseFrame == Time.frameCount);
+
+    internal static bool Answer(Phase phase, ActionName action, ref bool result)
+    {
+        if (!Mine(action))
+            return false;
+        result = phase switch
+        {
+            Phase.Started or Phase.Performed => _pressFrame == Time.frameCount,
+            Phase.Canceled => _releaseFrame == Time.frameCount,
+            Phase.Holding => _held,
+            _ => false,
+        };
+        return true;
+    }
+
+    internal static bool Hold(ActionName action, float seconds, ref bool result)
+    {
+        if (!Mine(action))
+            return false;
+        result = _held && Time.realtimeSinceStartup - _since >= seconds;
+        return true;
+    }
+
+    internal static bool PhaseOf(ActionName action, ref Phase result)
+    {
+        if (!Mine(action))
+            return false;
+        result = _pressFrame == Time.frameCount ? Phase.Started
+            : _releaseFrame == Time.frameCount ? Phase.Canceled
+            : _held ? Phase.Holding : Phase.None;
+        return true;
     }
 }

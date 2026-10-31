@@ -12,7 +12,9 @@ This is a separate, new mod. It is not part of the networked [Coop-Divers](https
 - Player 2 dives in with player 1 and swims, dashes, harpoons, uses the knife, guns and helper items.
 - Player 2 has their own oxygen tank and HUD (purple), weapon/item panel (bottom-left) and starting loadout. The cargo weight is shared. If either diver runs out of oxygen, the dive ends.
 - The camera follows the midpoint between the two divers and keeps player 2 in view.
-- Shark grabs are buggy
+- Shark grabs: player 2 gets their own struggle bar (mash A / B to break free). Still being tested.
+- Both divers can aim and fire the harpoon at the same time.
+- Camera spots: player 2 can start the photo mini-game too *(new, untested)*.
 - On the boat, player 2 is shown standing next to Dave.
 
 **Sushi bar (night)**

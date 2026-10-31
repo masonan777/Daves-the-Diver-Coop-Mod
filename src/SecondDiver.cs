@@ -168,6 +168,30 @@ internal static class SecondDiver
             AdvanceAnimator();
             if (P2Keys.Pressed(P2Keys.Action.Ok) || P2Keys.Released(P2Keys.Action.Ok))
                 Plugin.Logger.LogInfo($"P2 aim {(P2Keys.Pressed(P2Keys.Action.Ok) ? "pressed" : "released")}: " + DescribeVisuals());
+            // While player 1 is aiming, the game ignores player 2's aim button
+            // (it only allows one aim at a time). If player 2 holds aim and
+            // isn't aiming a moment later, start player 2's aim directly.
+            if (DispatchEnabled && !DiveIn.Active && !P2Grab.Held)
+            {
+                if (P2Keys.Pressed(P2Keys.Action.Ok))
+                    _aimRetryFrame = Time.frameCount + 3;
+                if (_aimRetryFrame > 0 && Time.frameCount >= _aimRetryFrame)
+                {
+                    _aimRetryFrame = -1;
+                    if (P2Keys.Held(P2Keys.Action.Ok) && _p2.GetRangeActionState.ToString() != "Aim" && !_p2.IsActionLock)
+                    {
+                        try
+                        {
+                            _p2.OnStartRangeAttack();
+                            Plugin.Logger.LogInfo($"P2 aim: started directly (player 1 {_p1?.GetRangeActionState}); now {_p2.GetRangeActionState}");
+                        }
+                        catch (Exception exception)
+                        {
+                            Plugin.Logger.LogWarning($"P2 aim start failed: {exception.Message}");
+                        }
+                    }
+                }
+            }
             if (DispatchEnabled && P2Keys.Released(P2Keys.Action.Ok) && !P2Keys.Held(P2Keys.Action.Fire))
             {
                 try
@@ -1282,6 +1306,7 @@ internal static class SecondDiver
     }
 
     private static int _gunGuideLogs;
+    private static int _aimRetryFrame = -1;
     private static int _qteLogs;
 
     internal static void SyncWeaponVisuals()

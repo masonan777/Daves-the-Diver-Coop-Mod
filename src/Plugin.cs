@@ -94,8 +94,10 @@ public sealed class CoopBehaviour : MonoBehaviour
         P2Keys.Tick();
         // Also on while player 2 is in a sushi mini-game: player 1's keys then
         // drive player 1 through the mod (SushiP1Drive) and must not reach it.
-        KeyboardFilter.Tick(P2Keys.Joined && (P2Keys.FilterPlayerOne || SushiCoop.Player2ScreenOpen));
+        KeyboardFilter.Tick(P2Keys.Joined && (P2Keys.FilterPlayerOne || SushiCoop.Player2ScreenOpen || PhotoP2.Open));
         SecondDiver.Tick(P2Keys.Joined);
+        try { P2Interact.Tick(); } catch (System.Exception e) { Plugin.Logger.LogWarning($"P2 interact: {e.Message}"); }
+        try { P1AimFix.Tick(); } catch { }
         SushiCoop.Tick();
         BoatDiver.Tick();
         ReloadWithoutP2.Tick();
